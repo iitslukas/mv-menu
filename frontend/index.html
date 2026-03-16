@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Savage C2 Panel</title>
+    <title>MV C2 Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background-color: #0b0b0b; color: #e4e4e7; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(10px); }
         .server-card { transition: all 0.3s ease; border: 1px solid #27272a; }
-        .server-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+        .server-card:hover { border-color: #2700b3; transform: translateY(-2px); }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -60,7 +60,7 @@
     <script>
         async function fetchServers() {
             try {
-                const response = await fetch('http://localhost:3000/api/list');
+                const response = await fetch('https://mv-menu.onrender.com/');
                 const servers = await response.json();
                 
                 const grid = document.getElementById('server-grid');
@@ -97,7 +97,6 @@
             alert(`Odosielam príkaz [${action.toUpperCase()}] na IP: ${ip}`);
         }
 
-        // Refresh každé 3 sekundy
         setInterval(fetchServers, 3000);
         fetchServers();
     </script>
