@@ -58,46 +58,52 @@
     </div>
 
     <script>
-        async function fetchServers() {
-            try {
-                const response = await fetch('/api/list');
-                
-                const grid = document.getElementById('server-grid');
-                document.getElementById('count-servers').innerText = servers.length;
-                
-                if (servers.length === 0) return;
-
-                grid.innerHTML = '';
-                servers.forEach(server => {
-                    grid.innerHTML += `
-                        <div class="server-card glass p-5 rounded-2xl">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="bg-blue-500/10 text-blue-500 p-2 rounded-lg">
-                                    <i class="fa-solid fa-microchip"></i>
-                                </div>
-                                <span class="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-1 rounded font-mono">${server.lastSeen}</span>
-                            </div>
-                            <h3 class="text-lg font-bold text-white truncate">${server.hostname}</h3>
-                            <p class="text-zinc-500 text-xs font-mono mb-6">${server.ip}</p>
-                            
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="executeAction('${server.ip}', 'kick')" class="bg-zinc-800 hover:bg-zinc-700 py-2 rounded-lg text-xs font-bold transition">MANAGE</button>
-                                <button onclick="executeAction('${server.ip}', 'infect')" class="bg-blue-600 hover:bg-blue-500 py-2 rounded-lg text-xs font-bold text-white transition">INFECT</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            } catch (err) {
-                console.error("Backend nie je dostupný");
-            }
+async function updateDashboard() {
+    try {
+        const response = await fetch('/api/list');
+        
+        // Ak server vráti 304 alebo 200, je to OK
+        if (!response.ok && response.status !== 304) {
+            throw new Error('Server neodpovedá správne');
         }
 
-        function executeAction(ip, action) {
-            alert(`Odosielam príkaz [${action.toUpperCase()}] na IP: ${ip}`);
+        const servers = await response.json();
+        console.log("Prijaté dáta:", servers); 
+
+        const listDiv = document.getElementById('server-list');
+        
+        if (servers.length === 0) {
+            listDiv.innerHTML = '<p style="color: gray; text-align: center; width: 100%;">Momentálne nie sú aktívne žiadne servery.</p>';
+            return;
         }
 
-        setInterval(fetchServers, 3000);
-        fetchServers();
+        listDiv.innerHTML = ''; // Vymažeme starý zoznam
+        
+        // --- TU JE TO DOPLNENÉ ---
+        servers.forEach(srv => {
+            const card = document.createElement('div');
+            card.className = 'bg-gray-800 p-4 rounded-lg border border-green-500/30 shadow-lg mb-4 w-full md:w-64';
+            card.innerHTML = `
+                <div class="flex flex-col">
+                    <span class="text-white font-bold text-lg border-b border-gray-700 pb-2 mb-2">${srv.hostname}</span>
+                    <span class="text-green-400 text-sm">Hráči: <span class="text-white">${srv.players}</span></span>
+                    <span class="text-gray-500 text-xs mt-2">IP: ${srv.ip}</span>
+                    <span class="text-gray-500 text-xs">Naposledy videný: ${srv.lastSeen}</span>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+
+    } catch (err) {
+        console.error("Chyba:", err);
+        // Ak si predtým videl "Backend nie je dostupný", toto to vypíše do konzoly podrobnejšie
+        document.getElementById('server-list').innerHTML = `<p style="color: red;">Chyba pripojenia: ${err.message}</p>`;
+    }
+}
+
+// Spustíme hneď a potom každých 5 sekúnd
+updateDashboard();
+setInterval(updateDashboard, 5000);
     </script>
 </body>
 </html>
