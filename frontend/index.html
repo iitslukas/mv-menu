@@ -64,68 +64,60 @@
 
     <script>
     async function updateDashboard() {
-    try {
-        const response = await fetch('/api/list');
-        if (!response.ok && response.status !== 304) throw new Error('C2 Offline');
+        try {
+            const response = await fetch('/api/list');
+            if (!response.ok && response.status !== 304) throw new Error('C2 Offline');
 
-        const servers = await response.json();
-        
-        // Skúsime nájsť nový grid, ak neexistuje, skúsime starý list
-        const grid = document.getElementById('server-grid') || document.getElementById('server-list');
-        
-        if (!grid) {
-            console.error("CHYBA: V HTML chýba element s id='server-grid'!");
-            return;
-        }
-
-        // Stats update - pridaj si tieto ID do HTML k číslam, ak ich tam nemáš
-        if(document.getElementById('count-servers')) document.getElementById('count-servers').innerText = servers.length;
-        if(document.getElementById('count-players')) {
+            const servers = await response.json();
+            const grid = document.getElementById('server-grid');
+            
+            // Stats update
+            document.getElementById('count-servers').innerText = servers.length;
             const totalPlayers = servers.reduce((acc, srv) => acc + (parseInt(srv.players) || 0), 0);
             document.getElementById('count-players').innerText = totalPlayers;
-        }
 
-        if (servers.length === 0) {
-            grid.innerHTML = `
-                <div class="col-span-full py-20 text-center text-zinc-600 border-2 border-dashed border-zinc-900 rounded-3xl w-full">
-                    <p class="font-bold uppercase tracking-widest text-xs italic">Waiting for incoming signal...</p>
-                </div>`;
-            return;
-        }
+            if (servers.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-20 text-center text-zinc-600 border-2 border-dashed border-zinc-900 rounded-3xl">
+                        <i class="fa-solid fa-satellite-dish text-4xl mb-4 animate-pulse"></i>
+                        <p class="font-bold uppercase tracking-widest text-xs">Waiting for incoming signal...</p>
+                    </div>`;
+                return;
+            }
 
-        grid.innerHTML = '';
-        servers.forEach(srv => {
-            const card = document.createElement('div');
-            card.className = 'server-card glass p-5 rounded-2xl relative overflow-hidden bg-zinc-900/50 border border-zinc-800';
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bg-blue-600/10 text-blue-500 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter italic">Node Online</div>
-                    <span class="text-zinc-600 text-[10px] font-mono">${srv.lastSeen}</span>
-                </div>
-                <h3 class="text-white font-black text-lg truncate mb-1 uppercase tracking-tighter">${srv.hostname}</h3>
-                <p class="text-zinc-500 text-xs font-mono mb-6">${srv.ip}</p>
-                
-                <div class="flex items-center justify-between py-3 border-t border-zinc-800/50">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-users text-blue-500 text-xs"></i>
-                        <span class="text-sm font-bold text-zinc-300">${srv.players} <span class="text-zinc-600 font-normal italic">players</span></span>
+            grid.innerHTML = '';
+            servers.forEach(srv => {
+                const card = document.createElement('div');
+                card.className = 'server-card glass p-5 rounded-2xl relative overflow-hidden';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-blue-600/10 text-blue-500 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">Node Online</div>
+                        <span class="text-zinc-600 text-[10px] font-mono">${srv.lastSeen}</span>
                     </div>
-                    <button onclick="location.href='manage.html?ip=${srv.ip}&name=${encodeURIComponent(srv.hostname)}'" 
-                            class="bg-white text-black text-[10px] font-black px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all uppercase tracking-widest cursor-pointer">
-                        Manage
-                    </button>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
+                    <h3 class="text-white font-black text-lg truncate mb-1 uppercase tracking-tighter">${srv.hostname}</h3>
+                    <p class="text-zinc-500 text-xs font-mono mb-6">${srv.ip}</p>
+                    
+                    <div class="flex items-center justify-between py-3 border-t border-zinc-800/50">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-users text-blue-500 text-xs"></i>
+                            <span class="text-sm font-bold text-zinc-300">${srv.players} <span class="text-zinc-600 font-normal italic">players</span></span>
+                        </div>
+                        <button onclick="location.href='manage.html?ip=${srv.ip}&name=${encodeURIComponent(srv.hostname)}'" 
+                                class="bg-white text-black text-[10px] font-black px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all uppercase tracking-widest">
+                            Manage
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
 
-    } catch (err) {
-        console.error("Dashboard error:", err);
+        } catch (err) {
+            console.error(err);
+        }
     }
-}
 
-setInterval(updateDashboard, 5000);
-updateDashboard();
+    setInterval(updateDashboard, 5000);
+    updateDashboard();
     </script>
 </body>
 </html>
