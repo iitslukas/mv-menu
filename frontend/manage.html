@@ -152,26 +152,31 @@
             if (!command) return;
 
             output.innerHTML += `<div><span class="text-blue-600 font-bold">#</span> <span class="text-white">${command}</span></div>`;
-            
+    
             try {
                 const response = await fetch('/api/send-command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip: targetIp, command: command })
-                });
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip: targetIp, command: command })
+            });
 
-                if (response.ok) {
-                    output.innerHTML += `<div class="text-zinc-500 italic ml-4">> Command queued for node...</div>`;
-                } else {
-                    output.innerHTML += `<div class="text-red-900 font-bold ml-4">> Transmission failed.</div>`;
-                }
-            } catch (err) {
-                output.innerHTML += `<div class="text-red-500 ml-4">> Connection error.</div>`;
-            }
-
-            input.value = '';
-            output.scrollTop = output.scrollHeight;
+        // Skontrolujeme, či server odpovedal OK (kód 200)
+        if (response.ok) {
+            output.innerHTML += `<div class="text-zinc-500 italic ml-4">> Command queued successfully.</div>`;
+        } else {
+            // Ak server vráti napr. 400 alebo 500
+            const errData = await response.json();
+            output.innerHTML += `<div class="text-red-900 font-bold ml-4">> Server Error: ${errData.error || response.status}</div>`;
         }
+    } catch (err) {
+        // Ak sa vôbec nepodarí spojiť so serverom
+        output.innerHTML += `<div class="text-red-500 ml-4">> Network Error: Skontroluj konzolu (F12)</div>`;
+        console.error("Chyba pri fetchi:", err);
+    }
+
+    input.value = '';
+    output.scrollTop = output.scrollHeight;
+}
 
         async function quickCommand(type) {
             let cmd = "";

