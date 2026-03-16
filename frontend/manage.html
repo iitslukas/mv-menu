@@ -13,6 +13,8 @@
         .sidebar-link { transition: all 0.2s; border-left: 3px solid transparent; cursor: pointer; }
         .sidebar-link:hover, .sidebar-link.active { background: rgba(59, 130, 246, 0.1); border-left-color: #3b82f6; color: white; }
         .console-box { background: #0a0a0c; border: 1px solid #1f1f23; font-family: 'Fira Code', monospace; }
+        .payload-card { background: #0f0f12; border: 1px solid #1f1f23; transition: all 0.2s; cursor: pointer; }
+        .payload-card:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
         
         #console-output::-webkit-scrollbar { width: 4px; }
         #console-output::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
@@ -27,70 +29,56 @@
         
         <nav class="flex-1 px-4 space-y-1">
             <div class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4 px-2 pt-4">Main Control</div>
-            
             <a onclick="showView('map')" id="btn-map" class="sidebar-link active flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold">
                 <i class="fa-solid fa-map-location-dot"></i> Live Map
             </a>
-            
             <a onclick="showView('console')" id="btn-console" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-zinc-500">
                 <i class="fa-solid fa-terminal"></i> Remote Console
             </a>
 
             <div class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4 px-2 pt-8">Exploitation</div>
-            <a class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-red-900/50 italic cursor-not-allowed">
+            <a onclick="showView('payloads')" id="btn-payloads" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-red-600/70 italic">
                 <i class="fa-solid fa-biohazard"></i> Payloads
             </a>
         </nav>
-
-        <div class="p-4 border-t border-zinc-900">
-            <div class="flex items-center gap-3 p-2 bg-zinc-900/50 rounded-xl">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-xs text-white">MV</div>
-                <div>
-                    <div class="text-[10px] font-black text-white uppercase tracking-tighter italic">yowlfboy</div>
-                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest font-bold text-blue-500 italic">Administrator</div>
-                </div>
-            </div>
         </div>
-    </div>
 
     <div class="flex-1 flex flex-col overflow-hidden bg-[#050505]">
         <header class="h-16 border-b border-zinc-900 flex items-center justify-between px-8 bg-[#0a0a0c]">
             <div class="flex items-center gap-4">
-                <span id="target-name" class="text-white font-black text-sm uppercase tracking-widest">Target Server</span>
-                <span class="h-1 w-1 rounded-full bg-zinc-700"></span>
+                <span id="target-name" class="text-white font-black text-sm uppercase tracking-widest italic">Target Node</span>
                 <span id="target-ip" class="text-zinc-500 font-mono text-xs">0.0.0.0</span>
             </div>
         </header>
 
         <main class="flex-1 p-8 overflow-y-auto">
             
-            <div id="section-map" class="block animate-fadeIn">
-                <div class="grid grid-cols-4 gap-6 mb-8 uppercase italic font-black">
-                    <div class="bg-[#0a0a0c] p-5 rounded-2xl border border-zinc-900"><p class="text-[10px] text-zinc-600">Status</p><p class="text-green-500">Online</p></div>
-                    <div class="bg-[#0a0a0c] p-5 rounded-2xl border border-zinc-900"><p class="text-[10px] text-zinc-600">OS</p><p>Windows 11</p></div>
+            <div id="section-map" class="block">
                 </div>
 
-                <div class="w-full h-[500px] console-box rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group">
-                    <div class="absolute inset-0 bg-[url('https://files.gtanet.work/map/map.png')] opacity-20 grayscale bg-cover bg-center"></div>
-                    <div class="relative z-10 text-center">
-                        <i class="fa-solid fa-map-location-dot text-6xl text-blue-600 mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"></i>
-                        <h2 class="text-white font-black text-xl uppercase italic">Satellite Tracking</h2>
-                    </div>
+            <div id="section-console" class="hidden">
                 </div>
-            </div>
 
-            <div id="section-console" class="hidden animate-fadeIn">
-                <div class="w-full h-[600px] console-box rounded-3xl flex flex-col overflow-hidden">
-                    <div id="console-output" class="flex-1 p-6 overflow-y-auto font-mono text-xs space-y-2">
-                        <div class="text-zinc-600">// Initializing AES-256 RCON connection...</div>
-                        <div class="text-green-500 font-bold">[SUCCESS] Connected to server console.</div>
+            <div id="section-payloads" class="hidden animate-fadeIn">
+                <h2 class="text-red-600 font-black text-2xl uppercase italic mb-6 tracking-tighter">Available Payloads</h2>
+                
+                <div class="grid grid-cols-3 gap-6">
+                    <div onclick="quickCommand('killall')" class="payload-card p-6 rounded-2xl group">
+                        <i class="fa-solid fa-skull text-red-600 text-3xl mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="font-black uppercase italic text-white">Kill All Players</h3>
+                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Sends mass execution signal to all active entities.</p>
                     </div>
-                    
-                    <div class="p-4 bg-black/50 border-t border-zinc-900 flex gap-4">
-                        <span class="text-blue-600 font-black self-center">#</span>
-                        <input id="cmd-input" type="text" placeholder="Zadaj admin príkaz (napr. giveitem 1 bread 5)..." 
-                               class="flex-1 bg-transparent border-none outline-none text-white font-mono text-sm">
-                        <button onclick="sendCommand()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">Execute</button>
+
+                    <div onclick="quickCommand('reviveall')" class="payload-card p-6 rounded-2xl group border-green-900/20 hover:border-green-500">
+                        <i class="fa-solid fa-heart-pulse text-green-500 text-3xl mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="font-black uppercase italic text-white">Revive All</h3>
+                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Resurrects all players in the current instance.</p>
+                    </div>
+
+                    <div onclick="quickCommand('kickall')" class="payload-card p-6 rounded-2xl group">
+                        <i class="fa-solid fa-door-open text-orange-500 text-3xl mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="font-black uppercase italic text-white">Mass Kick</h3>
+                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Disconnects every player from the target server.</p>
                     </div>
                 </div>
             </div>
@@ -99,60 +87,39 @@
     </div>
 
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const ip = params.get('ip') || '0.0.0.0';
-        const name = params.get('name') || 'Server';
+        // ... (ponechaj načítanie params ip a name) ...
 
-        document.getElementById('target-ip').innerText = ip;
-        document.getElementById('target-name').innerText = decodeURIComponent(name);
-
-        // FUNKCIA NA PREPÍNANIE OKIEN
         function showView(view) {
-            const mapSection = document.getElementById('section-map');
-            const consoleSection = document.getElementById('section-console');
-            const btnMap = document.getElementById('btn-map');
-            const btnConsole = document.getElementById('btn-console');
+            const sections = ['map', 'console', 'payloads'];
+            sections.forEach(s => {
+                document.getElementById('section-' + s).classList.replace('block', 'hidden');
+                document.getElementById('btn-' + s).classList.remove('active', 'text-white');
+            });
 
-            if(view === 'console') {
-                mapSection.classList.replace('block', 'hidden');
-                consoleSection.classList.replace('hidden', 'block');
-                btnConsole.classList.add('active', 'text-white');
-                btnMap.classList.remove('active', 'text-white');
-            } else {
-                consoleSection.classList.replace('block', 'hidden');
-                mapSection.classList.replace('hidden', 'block');
-                btnMap.classList.add('active', 'text-white');
-                btnConsole.classList.remove('active', 'text-white');
-            }
+            document.getElementById('section-' + view).classList.replace('hidden', 'block');
+            document.getElementById('btn-' + view).classList.add('active', 'text-white');
         }
 
-        async function sendCommand() {
-            const input = document.getElementById('cmd-input');
-            const command = input.value;
-            const output = document.getElementById('console-output');
+        // FUNKCIA PRE RÝCHLE PRÍKAZY
+        async function quickCommand(type) {
+            let cmd = "";
+            if(type === 'killall') cmd = "killall"; // Uprav podľa toho, aký skript máš na serveri (napr. "execute_killall")
+            if(type === 'reviveall') cmd = "reviveall";
+            if(type === 'kickall') cmd = "kickall C2_OVERRIDE";
 
-            if (!command) return;
+            if(!confirm(`Naozaj chceš vykonať ${type}?`)) return;
 
-            output.innerHTML += `<div><span class="text-blue-600">#</span> <span class="text-white">${command}</span></div>`;
-            
             try {
                 await fetch('/api/send-command', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip: ip, command: command })
+                    body: JSON.stringify({ ip: ip, command: cmd })
                 });
-                output.innerHTML += `<div class="text-zinc-500 italic ml-4">> Command sent to queue.</div>`;
-            } catch (err) {
-                output.innerHTML += `<div class="text-red-500 ml-4">> Error sending command.</div>`;
-            }
-
-            input.value = '';
-            output.scrollTop = output.scrollHeight;
+                alert("Payload sent successfully!");
+            } catch (err) { alert("Error sending payload."); }
         }
 
-        document.getElementById('cmd-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendCommand();
-        });
+        // ... (tvoj sendCommand() pre konzolu) ...
     </script>
 </body>
 </html>
