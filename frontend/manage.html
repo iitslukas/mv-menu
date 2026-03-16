@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <title>Savage C2 - Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { background-color: #050505; color: #e4e4e7; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .sidebar-link { transition: all 0.2s; border-left: 3px solid transparent; }
+        .sidebar-link:hover, .sidebar-link.active { background: rgba(59, 130, 246, 0.1); border-left-color: #3b82f6; color: white; }
+        .console-box { background: #0a0a0c; border: 1px solid #1f1f23; font-family: 'Fira Code', monospace; }
+    </style>
+</head>
+<body class="h-screen flex">
+
+    <div class="w-64 bg-[#0a0a0c] border-r border-zinc-900 flex flex-col">
+        <div class="p-6">
+            <h1 class="text-white font-black italic tracking-tighter text-xl cursor-pointer" onclick="location.href='/'">SAVAGE <span class="text-blue-600">PANEL</span></h1>
+        </div>
+        
+        <nav class="flex-1 px-4 space-y-1">
+            <div class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4 px-2 pt-4">Main Control</div>
+            <a href="#" class="sidebar-link active flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold">
+                <i class="fa-solid fa-map-location-dot"></i> Live Map
+            </a>
+            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-zinc-500 italic">
+                <i class="fa-solid fa-terminal"></i> Remote Console
+            </a>
+            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-zinc-500 italic">
+                <i class="fa-solid fa-cubes"></i> Resources
+            </a>
+            <div class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4 px-2 pt-8">Exploitation</div>
+            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-red-900 italic">
+                <i class="fa-solid fa-biohazard"></i> Payloads
+            </a>
+            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold text-zinc-500 italic">
+                <i class="fa-solid fa-database"></i> SQL Injector
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-zinc-900">
+            <div class="flex items-center gap-3 p-2 bg-zinc-900/50 rounded-xl">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-xs text-white">MV</div>
+                <div>
+                    <div class="text-[10px] font-black text-white uppercase tracking-tighter">yowlfboy</div>
+                    <div class="text-[8px] text-zinc-500 uppercase tracking-widest font-bold text-blue-500">Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-hidden bg-[#050505]">
+        <header class="h-16 border-b border-zinc-900 flex items-center justify-between px-8 bg-[#0a0a0c]">
+            <div class="flex items-center gap-4">
+                <span id="target-name" class="text-white font-black text-sm uppercase tracking-widest">Target Server</span>
+                <span class="h-1 w-1 rounded-full bg-zinc-700"></span>
+                <span id="target-ip" class="text-zinc-500 font-mono text-xs">0.0.0.0</span>
+            </div>
+            <div class="flex gap-2">
+                <button class="bg-zinc-900 text-zinc-400 px-3 py-1.5 rounded-md text-[10px] font-black hover:bg-zinc-800 transition uppercase tracking-widest">Restart Server</button>
+                <button class="bg-red-900/20 text-red-500 px-3 py-1.5 rounded-md text-[10px] font-black hover:bg-red-900 hover:text-white transition uppercase tracking-widest">Uninstall</button>
+            </div>
+        </header>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="bg-[#0a0a0c] p-5 rounded-2xl border border-zinc-900">
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Players</p>
+                    <p class="text-2xl font-black text-white mt-1 italic">1/48</p>
+                </div>
+                <div class="bg-[#0a0a0c] p-5 rounded-2xl border border-zinc-900 italic">
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest italic">OS Version</p>
+                    <p class="text-2xl font-black text-white mt-1 italic uppercase">Windows 11</p>
+                </div>
+                <div class="bg-[#0a0a0c] p-5 rounded-2xl border border-zinc-900">
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Resources</p>
+                    <p class="text-2xl font-black text-blue-500 mt-1 italic">154/177</p>
+                </div>
+                <div class="bg-[#0a0a0c] p-5 rounded-2xl border border-zinc-900 italic text-green-500">
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest italic">Ping</p>
+                    <p class="text-2xl font-black mt-1">12ms</p>
+                </div>
+            </div>
+
+            <div class="w-full h-[500px] console-box rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group">
+                <div class="absolute inset-0 bg-[url('https://files.gtanet.work/map/map.png')] opacity-20 grayscale bg-cover bg-center group-hover:opacity-40 transition-opacity"></div>
+                <div class="relative z-10 text-center">
+                    <i class="fa-solid fa-map-location-dot text-6xl text-blue-600 mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"></i>
+                    <h2 class="text-white font-black text-xl uppercase tracking-tighter italic">Live Satellite Tracking</h2>
+                    <p class="text-zinc-500 text-xs mt-2 uppercase tracking-widest font-bold">Synchronizing with server coordinates...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const ip = params.get('ip') || 'N/A';
+        const name = params.get('name') || 'Unknown Node';
+
+        document.getElementById('target-ip').innerText = ip;
+        document.getElementById('target-name').innerText = decodeURIComponent(name);
+    </script>
+</body>
+</html>
