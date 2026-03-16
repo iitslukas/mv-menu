@@ -18,6 +18,8 @@
         
         #console-output::-webkit-scrollbar { width: 4px; }
         #console-output::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="h-screen flex">
@@ -41,7 +43,7 @@
                 <i class="fa-solid fa-biohazard"></i> Payloads
             </a>
         </nav>
-        </div>
+    </div>
 
     <div class="flex-1 flex flex-col overflow-hidden bg-[#050505]">
         <header class="h-16 border-b border-zinc-900 flex items-center justify-between px-8 bg-[#0a0a0c]">
@@ -53,32 +55,61 @@
 
         <main class="flex-1 p-8 overflow-y-auto">
             
-            <div id="section-map" class="block">
+            <div id="section-map" class="block animate-fadeIn">
+                <div class="w-full h-[550px] console-box rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-[url('https://files.gtanet.work/map/map.png')] opacity-20 grayscale bg-cover bg-center"></div>
+                    <div class="relative z-10 text-center">
+                        <i class="fa-solid fa-map-location-dot text-6xl text-blue-600 mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"></i>
+                        <h2 class="text-white font-black text-xl uppercase italic">Satellite Tracking</h2>
+                        <p class="text-zinc-500 text-xs mt-2 uppercase tracking-widest font-bold">Waiting for server coordinates...</p>
+                    </div>
                 </div>
+            </div>
 
-            <div id="section-console" class="hidden">
+            <div id="section-console" class="hidden animate-fadeIn">
+                <div class="w-full h-[600px] console-box rounded-3xl flex flex-col overflow-hidden border border-zinc-800 shadow-2xl">
+                    <div class="p-4 border-b border-zinc-900 bg-black/40 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                            <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span class="ml-2 text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">rcon_session.sh</span>
+                        </div>
+                    </div>
+                    
+                    <div id="console-output" class="flex-1 p-6 overflow-y-auto font-mono text-xs space-y-2">
+                        <div class="text-zinc-600">// Initializing AES-256 RCON link...</div>
+                        <div class="text-green-500 font-bold">[SUCCESS] Secure connection established.</div>
+                    </div>
+                    
+                    <div class="p-4 bg-black/50 border-t border-zinc-900 flex gap-4">
+                        <span class="text-blue-600 font-black self-center">#</span>
+                        <input id="cmd-input" type="text" placeholder="Zadaj príkaz (napr. setjob 1 police 3)..." 
+                               class="flex-1 bg-transparent border-none outline-none text-white font-mono text-sm">
+                        <button onclick="sendCommand()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">Execute</button>
+                    </div>
                 </div>
+            </div>
 
             <div id="section-payloads" class="hidden animate-fadeIn">
                 <h2 class="text-red-600 font-black text-2xl uppercase italic mb-6 tracking-tighter">Available Payloads</h2>
-                
                 <div class="grid grid-cols-3 gap-6">
                     <div onclick="quickCommand('killall')" class="payload-card p-6 rounded-2xl group">
                         <i class="fa-solid fa-skull text-red-600 text-3xl mb-4 group-hover:scale-110 transition-transform"></i>
                         <h3 class="font-black uppercase italic text-white">Kill All Players</h3>
-                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Sends mass execution signal to all active entities.</p>
+                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Sends mass execution signal.</p>
                     </div>
 
                     <div onclick="quickCommand('reviveall')" class="payload-card p-6 rounded-2xl group border-green-900/20 hover:border-green-500">
                         <i class="fa-solid fa-heart-pulse text-green-500 text-3xl mb-4 group-hover:scale-110 transition-transform"></i>
                         <h3 class="font-black uppercase italic text-white">Revive All</h3>
-                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Resurrects all players in the current instance.</p>
+                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Resurrects everyone.</p>
                     </div>
 
-                    <div onclick="quickCommand('kickall')" class="payload-card p-6 rounded-2xl group">
+                    <div onclick="quickCommand('kickall')" class="payload-card p-6 rounded-2xl group border-orange-900/20 hover:border-orange-500">
                         <i class="fa-solid fa-door-open text-orange-500 text-3xl mb-4 group-hover:scale-110 transition-transform"></i>
                         <h3 class="font-black uppercase italic text-white">Mass Kick</h3>
-                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Disconnects every player from the target server.</p>
+                        <p class="text-zinc-600 text-[10px] mt-2 leading-relaxed uppercase tracking-widest font-bold">Clear the server.</p>
                     </div>
                 </div>
             </div>
@@ -87,39 +118,85 @@
     </div>
 
     <script>
-        // ... (ponechaj načítanie params ip a name) ...
+        const params = new URLSearchParams(window.location.search);
+        const targetIp = params.get('ip') || '0.0.0.0';
+        const targetName = params.get('name') || 'Server';
+
+        document.getElementById('target-ip').innerText = targetIp;
+        document.getElementById('target-name').innerText = decodeURIComponent(targetName);
 
         function showView(view) {
             const sections = ['map', 'console', 'payloads'];
             sections.forEach(s => {
-                document.getElementById('section-' + s).classList.replace('block', 'hidden');
-                document.getElementById('btn-' + s).classList.remove('active', 'text-white');
+                const el = document.getElementById('section-' + s);
+                const btn = document.getElementById('btn-' + s);
+                el.classList.add('hidden');
+                el.classList.remove('block');
+                btn.classList.remove('active', 'text-white');
+                btn.classList.add('text-zinc-500');
             });
 
-            document.getElementById('section-' + view).classList.replace('hidden', 'block');
-            document.getElementById('btn-' + view).classList.add('active', 'text-white');
+            const activeEl = document.getElementById('section-' + view);
+            const activeBtn = document.getElementById('btn-' + view);
+            activeEl.classList.remove('hidden');
+            activeEl.classList.add('block');
+            activeBtn.classList.add('active', 'text-white');
+            activeBtn.classList.remove('text-zinc-500');
         }
 
-        // FUNKCIA PRE RÝCHLE PRÍKAZY
+        async function sendCommand() {
+            const input = document.getElementById('cmd-input');
+            const command = input.value;
+            const output = document.getElementById('console-output');
+
+            if (!command) return;
+
+            output.innerHTML += `<div><span class="text-blue-600 font-bold">#</span> <span class="text-white">${command}</span></div>`;
+            
+            try {
+                const response = await fetch('/api/send-command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: targetIp, command: command })
+                });
+
+                if (response.ok) {
+                    output.innerHTML += `<div class="text-zinc-500 italic ml-4">> Command queued for node...</div>`;
+                } else {
+                    output.innerHTML += `<div class="text-red-900 font-bold ml-4">> Transmission failed.</div>`;
+                }
+            } catch (err) {
+                output.innerHTML += `<div class="text-red-500 ml-4">> Connection error.</div>`;
+            }
+
+            input.value = '';
+            output.scrollTop = output.scrollHeight;
+        }
+
         async function quickCommand(type) {
             let cmd = "";
-            if(type === 'killall') cmd = "killall"; // Uprav podľa toho, aký skript máš na serveri (napr. "execute_killall")
+            if(type === 'killall') cmd = "killall";
             if(type === 'reviveall') cmd = "reviveall";
             if(type === 'kickall') cmd = "kickall C2_OVERRIDE";
 
-            if(!confirm(`Naozaj chceš vykonať ${type}?`)) return;
-
             try {
-                await fetch('/api/send-command', {
+                const response = await fetch('/api/send-command', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip: ip, command: cmd })
+                    body: JSON.stringify({ ip: targetIp, command: cmd })
                 });
-                alert("Payload sent successfully!");
-            } catch (err) { alert("Error sending payload."); }
+
+                if (response.ok) {
+                    alert("Payload [" + type + "] sent!");
+                }
+            } catch (err) {
+                alert("Error sending payload.");
+            }
         }
 
-        // ... (tvoj sendCommand() pre konzolu) ...
+        document.getElementById('cmd-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendCommand();
+        });
     </script>
 </body>
 </html>

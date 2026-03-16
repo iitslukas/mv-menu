@@ -36,3 +36,18 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server beží na porte ${PORT}`);
 });
+app.post('/api/send-command', (req, res) => {
+    const { ip, command } = req.body;
+    
+    if (!ip || !command) {
+        return res.status(400).send({ error: "Chýba IP alebo príkaz" });
+    }
+
+    if (!serverCommands[ip]) {
+        serverCommands[ip] = [];
+    }
+
+    serverCommands[ip].push(command);
+    console.log(`Príkaz [${command}] pridaný pre IP: ${ip}`);
+    res.json({ status: "queued" });
+});
