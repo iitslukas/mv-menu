@@ -94,14 +94,49 @@
             </div>
         </main>
     </div>
+    <div class="mt-8 bg-black border border-zinc-800 rounded-xl p-4">
+    <div id="console-output" class="h-64 overflow-y-auto mb-4 font-mono text-xs p-2 text-green-400 bg-zinc-950 rounded border border-zinc-900">
+        > System ready. Waiting for input...
+    </div>
+    <div class="flex gap-2">
+        <input id="cmd-input" type="text" placeholder="Zadaj príkaz (napr. setjob 1 police 3)..." 
+               class="flex-1 bg-zinc-900 border border-zinc-800 rounded px-4 py-2 text-sm outline-none focus:border-blue-500">
+        <button onclick="sendCommand()" class="bg-blue-600 px-6 py-2 rounded font-black text-xs uppercase">Send</button>
+    </div>
+</div>
 
-    <script>
+<script>
+async function sendCommand() {
+    const input = document.getElementById('cmd-input');
+    const command = input.value;
+    const params = new URLSearchParams(window.location.search);
+    const ip = params.get('ip');
+
+    if (!command) return;
+
+    try {
+        const response = await fetch('/api/send-command', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ip, command })
+        });
+
+        if (response.ok) {
+            const out = document.getElementById('console-output');
+            out.innerHTML += `<div class="text-zinc-500">[SENT] ${command}</div>`;
+            input.value = '';
+            out.scrollTop = out.scrollHeight;
+        }
+    } catch (err) {
+        alert("Chyba pri odosielaní príkazu");
+    }
+}
         const params = new URLSearchParams(window.location.search);
         const ip = params.get('ip') || 'N/A';
         const name = params.get('name') || 'Unknown Node';
 
         document.getElementById('target-ip').innerText = ip;
         document.getElementById('target-name').innerText = decodeURIComponent(name);
-    </script>
+</script>
 </body>
 </html>

